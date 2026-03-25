@@ -46,10 +46,10 @@ class NB_API {
 		$token  = $request->get_header( 'X-NB-Token' );
 		$stored = get_option( NB_TOKEN_OPT, '' );
 
-		if ( ! $token || ! $stored || ! hash_equals( $stored, $token ) ) {
+		if ( ! $token || ! $stored || ! hash_equals( (string) $stored, (string) $token ) ) {
 			return new WP_Error(
 				'nb_forbidden',
-				__( 'Token inválido ou ausente.', 'nitro-builder' ),
+				__( 'Acesso não autorizado.', 'nitro-builder' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -148,7 +148,7 @@ class NB_API {
 	}
 
 	public static function handle_get( WP_REST_Request $request ) {
-		$post = self::get_owned_page( (int) $request['id'] );
+		$post = self::get_owned_page( absint( $request['id'] ) );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -158,7 +158,7 @@ class NB_API {
 	}
 
 	public static function handle_update( WP_REST_Request $request ) {
-		$post = self::get_owned_page( (int) $request['id'] );
+		$post = self::get_owned_page( absint( $request['id'] ) );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -192,7 +192,7 @@ class NB_API {
 	}
 
 	public static function handle_delete( WP_REST_Request $request ) {
-		$post = self::get_owned_page( (int) $request['id'] );
+		$post = self::get_owned_page( absint( $request['id'] ) );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;

@@ -21,10 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'NB_VERSION',    '1.0.0' );
 define( 'NB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'NB_META_FLAG',  '_nitrobuilder_page' );
-define( 'NB_META_HTML',  '_nitrobuilder_html' );
-define( 'NB_TOKEN_OPT',  'nitrobuilder_api_token' );
-define( 'NB_NAMESPACE',  'nitrobuilder/v1' );
+define( 'NB_META_FLAG',  '_nitro_builder_page' );
+define( 'NB_META_HTML',  '_nitro_builder_html' );
+define( 'NB_TOKEN_OPT',  'nitro_builder_api_token' );
+define( 'NB_NAMESPACE',  'nitro-builder/v1' );
 
 require_once NB_PLUGIN_DIR . 'includes/class-activator.php';
 require_once NB_PLUGIN_DIR . 'includes/class-api.php';

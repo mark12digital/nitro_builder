@@ -26,7 +26,11 @@ class NB_Admin {
 			return;
 		}
 
-		if ( isset( $_POST['nb_regenerate'] ) && check_admin_referer( 'nb_regenerate_token' ) ) {
+		if ( isset( $_POST['nb_regenerate'] ) ) {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html__( 'Sem permissão.', 'nitro-builder' ) );
+			}
+			check_admin_referer( 'nb_regenerate_token', '_nb_nonce' );
 			$new_token = bin2hex( random_bytes( 32 ) );
 			update_option( NB_TOKEN_OPT, $new_token, false );
 			echo '<div class="notice notice-success"><p>' . esc_html__( 'Token regenerado com sucesso.', 'nitro-builder' ) . '</p></div>';
@@ -42,7 +46,7 @@ class NB_Admin {
 				<tr>
 					<th scope="row"><?php esc_html_e( 'URL base da API', 'nitro-builder' ); ?></th>
 					<td>
-						<code><?php echo esc_html( $api_base ); ?></code>
+						<code><?php echo esc_url( $api_base ); ?></code>
 					</td>
 				</tr>
 				<tr>
@@ -78,7 +82,7 @@ class NB_Admin {
 			<p><?php esc_html_e( 'Ao regenerar, o token atual é imediatamente invalidado. Atualize o token em todos os clientes que o utilizam.', 'nitro-builder' ); ?></p>
 
 			<form method="post">
-				<?php wp_nonce_field( 'nb_regenerate_token' ); ?>
+				<?php wp_nonce_field( 'nb_regenerate_token', '_nb_nonce' ); ?>
 				<button
 					type="submit"
 					name="nb_regenerate"
