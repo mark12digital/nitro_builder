@@ -205,8 +205,11 @@ class Pages {
 			if ( is_wp_error( $slug_result ) ) {
 				return $slug_result;
 			}
-			$args['post_name'] = $slug_result['slug'];
-			$slug_info         = $slug_result;
+			// Sufixo de timestamp garante unicidade sob concorrência.
+			$unique_slug           = $slug_result['slug'] . '-' . time();
+			$args['post_name']     = $unique_slug;
+			$slug_info             = $slug_result;
+			$slug_info['slug']     = $unique_slug;
 		}
 
 		$post_id = wp_insert_post( $args, true );
