@@ -26,14 +26,13 @@ define( 'NB_META_HTML',  '_nitro_builder_html' );
 define( 'NB_TOKEN_OPT',  'nitro_builder_api_token' );
 define( 'NB_NAMESPACE',  'nitro-builder/v1' );
 
-require_once NB_PLUGIN_DIR . 'includes/class-activator.php';
-require_once NB_PLUGIN_DIR . 'includes/class-api.php';
-require_once NB_PLUGIN_DIR . 'includes/class-renderer.php';
-require_once NB_PLUGIN_DIR . 'includes/class-admin.php';
+require_once NB_PLUGIN_DIR . 'includes/class-plugin.php';
 
 register_activation_hook( __FILE__, array( 'NB_Activator', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'NB_Activator', 'deactivate' ) );
 
-NB_API::init();
-NB_Renderer::init();
-NB_Admin::init();
+function nitro_builder(): NB_Plugin {
+	return NB_Plugin::get_instance();
+}
+
+nitro_builder();
