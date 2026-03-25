@@ -1,0 +1,95 @@
+# Copyright (C) 2025 Mark12 Digital
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Nitro Builder 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/mark12digital/nitro_builder/issues\n"
+"POT-Creation-Date: 2025-01-01T00:00:00+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: WP-CLI 2.x\n"
+"X-Domain: nitro-builder\n"
+
+#. Plugin Name of the plugin
+msgid "Nitro Builder"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://github.com/mark12digital/nitro_builder"
+msgstr ""
+
+#. Description of the plugin
+msgid "Cria e gerencia páginas WordPress com HTML/CSS/JS puro via API REST, sem interferência do tema ou outros plugins."
+msgstr ""
+
+#. Author of the plugin
+msgid "Mark12 Digital"
+msgstr ""
+
+#: includes/class-api.php
+msgid "Token inválido ou ausente."
+msgstr ""
+
+#: includes/class-api.php
+msgid "Página não encontrada."
+msgstr ""
+
+#: includes/class-api.php
+msgid "O campo \"title\" é obrigatório."
+msgstr ""
+
+#: includes/class-api.php
+msgid "O campo \"html\" é obrigatório."
+msgstr ""
+
+#: includes/class-api.php
+msgid "Falha ao excluir a página."
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Nitro Builder"
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Token regenerado com sucesso."
+msgstr ""
+
+#: includes/class-admin.php
+msgid "URL base da API"
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Token de autenticação"
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Copiado!"
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Copiar"
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Envie este token no header X-NB-Token em todas as requisições."
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Regenerar token"
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Ao regenerar, o token atual é imediatamente invalidado. Atualize o token em todos os clientes que o utilizam."
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Tem certeza? O token atual será invalidado imediatamente."
+msgstr ""
+
+#: includes/class-admin.php
+msgid "Gerenciada"
+msgstr ""
