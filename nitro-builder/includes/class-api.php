@@ -71,6 +71,66 @@ class NB_API {
 		return $post;
 	}
 
+	/**
+	 * Sanitiza e valida um slug antes de salvar.
+	 * Retorna array com ['slug', 'changed', 'original'] ou WP_Error.
+	 *
+	 * @param string $raw Slug bruto recebido da requisição.
+	 * @return array|WP_Error
+	 */
+	private static function validate_slug( string $raw ) {
+		// 2. Sanitizar + detectar mudança.
+		$clean   = sanitize_title( $raw );
+		$changed = ( $raw !== $clean );
+
+		// 3. Comprimento mínimo.
+		if ( mb_strlen( $clean ) < 2 ) {
+			return new WP_Error(
+				'nb_slug_too_short',
+				__( 'Slug deve ter pelo menos 2 caracteres.', 'nitro-builder' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// 5. Comprimento máximo.
+		if ( mb_strlen( $clean ) > 100 ) {
+			return new WP_Error(
+				'nb_slug_too_long',
+				__( 'Slug não pode exceder 100 caracteres.', 'nitro-builder' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// 6. Slug puramente numérico.
+		if ( ctype_digit( $clean ) ) {
+			return new WP_Error(
+				'nb_numeric_slug',
+				__( 'Slug não pode ser somente números.', 'nitro-builder' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// 7. Slugs reservados pelo WordPress.
+		$reserved = array(
+			'wp-admin', 'wp-login', 'wp-content', 'wp-includes',
+			'feed', 'rss', 'rss2', 'atom', 'comments',
+			'page', 'embed', 'wp-json', 'wp-sitemap',
+		);
+		if ( in_array( $clean, $reserved, true ) ) {
+			return new WP_Error(
+				'nb_reserved_slug',
+				__( 'Este slug é reservado pelo WordPress.', 'nitro-builder' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		return array(
+			'slug'     => $clean,
+			'changed'  => $changed,
+			'original' => $raw,
+		);
+	}
+
 	private static function format_response( WP_Post $post, bool $include_html = false ): array {
 		$data = array(
 			'id'         => $post->ID,
@@ -92,6 +152,7 @@ class NB_API {
 	public static function handle_create( WP_REST_Request $request ) {
 		$params = $request->get_json_params();
 
+		// 1. Sanitizar title.
 		$title = isset( $params['title'] ) ? sanitize_text_field( $params['title'] ) : '';
 		$html  = $params['html'] ?? '';
 
@@ -102,19 +163,32 @@ class NB_API {
 			return new WP_Error( 'nb_missing_html', __( 'O campo "html" é obrigatório.', 'nitro-builder' ), array( 'status' => 400 ) );
 		}
 
+		// 4. Limite de tamanho do title.
+		if ( mb_strlen( $title ) > 200 ) {
+			return new WP_Error( 'nb_title_too_long', __( 'Title não pode exceder 200 caracteres.', 'nitro-builder' ), array( 'status' => 400 ) );
+		}
+
+		// 8. Validar status.
 		$status = in_array( $params['status'] ?? '', array( 'draft', 'private', 'publish' ), true )
 			? $params['status']
 			: 'publish';
 
-		$args = array(
+		$args      = array(
 			'post_type'    => 'page',
 			'post_title'   => $title,
 			'post_status'  => $status,
 			'post_content' => '',
 		);
+		$slug_info = null;
 
+		// 2–7. Validar e sanitizar slug.
 		if ( ! empty( $params['slug'] ) ) {
-			$args['post_name'] = sanitize_title( $params['slug'] );
+			$slug_result = self::validate_slug( $params['slug'] );
+			if ( is_wp_error( $slug_result ) ) {
+				return $slug_result;
+			}
+			$args['post_name'] = $slug_result['slug'];
+			$slug_info         = $slug_result;
 		}
 
 		$post_id = wp_insert_post( $args, true );
@@ -124,10 +198,20 @@ class NB_API {
 		}
 
 		update_post_meta( $post_id, NB_META_FLAG, '1' );
-		// HTML salvo sem sanitização — intencional (conteúdo vem de IA controlada pelo usuário).
+		// O campo html é conteúdo gerado pelo Anti-Gravity (IA controlada pelo admin).
+		// Sanitização omitida intencionalmente — o HTML inclui CSS e JS válidos.
+		// Não altere este comportamento sem revisar a arquitetura do plugin.
 		update_post_meta( $post_id, NB_META_HTML, $html );
 
-		$response = rest_ensure_response( self::format_response( get_post( $post_id ) ) );
+		$data = self::format_response( get_post( $post_id ) );
+
+		// Correção 1: informar o agente se o slug foi alterado pela sanitização.
+		if ( $slug_info && $slug_info['changed'] ) {
+			$data['slug_sanitized'] = true;
+			$data['slug_original']  = $slug_info['original'];
+		}
+
+		$response = rest_ensure_response( $data );
 		$response->set_status( 201 );
 
 		return $response;
@@ -168,10 +252,18 @@ class NB_API {
 		$args   = array( 'ID' => $post->ID );
 
 		if ( isset( $params['title'] ) ) {
-			$args['post_title'] = sanitize_text_field( $params['title'] );
+			$title = sanitize_text_field( $params['title'] );
+			if ( mb_strlen( $title ) > 200 ) {
+				return new WP_Error( 'nb_title_too_long', __( 'Title não pode exceder 200 caracteres.', 'nitro-builder' ), array( 'status' => 400 ) );
+			}
+			$args['post_title'] = $title;
 		}
-		if ( isset( $params['slug'] ) ) {
-			$args['post_name'] = sanitize_title( $params['slug'] );
+		if ( ! empty( $params['slug'] ) ) {
+			$slug_result = self::validate_slug( $params['slug'] );
+			if ( is_wp_error( $slug_result ) ) {
+				return $slug_result;
+			}
+			$args['post_name'] = $slug_result['slug'];
 		}
 		if ( isset( $params['status'] ) && in_array( $params['status'], array( 'draft', 'private', 'publish' ), true ) ) {
 			$args['post_status'] = $params['status'];
