@@ -1,0 +1,9 @@
+# MCP config (contains API keys)
+.mcp.json
+
+# Build artifacts
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
