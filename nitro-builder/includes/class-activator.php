@@ -1,9 +1,11 @@
 <?php
+namespace NitroBuilder;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class NB_Activator {
+class Activator {
 
 	public static function activate() {
 		if ( ! get_option( NB_TOKEN_OPT ) ) {

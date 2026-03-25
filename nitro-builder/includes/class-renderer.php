@@ -1,9 +1,11 @@
 <?php
+namespace NitroBuilder;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class NB_Renderer {
+class Renderer {
 
 	public static function init() {
 		add_action( 'template_redirect', array( __CLASS__, 'maybe_render' ), 1 );

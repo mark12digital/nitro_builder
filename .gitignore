@@ -4,6 +4,10 @@
 # Especificações técnicas — ficam só localmente, não vão pro repo
 technical-specification/
 
+# Composer
+nitro-builder/vendor/
+nitro-builder/composer.lock
+
 # Build artifacts
 *.zip
 

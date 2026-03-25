@@ -1,0 +1,13 @@
+{
+    "name": "mark12digital/nitro-builder",
+    "description": "AI-to-WordPress bridge plugin",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "classmap": [
+            "includes/"
+        ]
+    }
+}

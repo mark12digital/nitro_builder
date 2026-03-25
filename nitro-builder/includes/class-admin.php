@@ -1,9 +1,11 @@
 <?php
+namespace NitroBuilder;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class NB_Admin {
+class Admin {
 
 	public static function init() {
 		add_action( 'admin_menu',                 array( __CLASS__, 'settings_page' ) );

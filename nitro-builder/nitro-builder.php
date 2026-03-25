@@ -26,13 +26,20 @@ define( 'NB_META_HTML',  '_nitro_builder_html' );
 define( 'NB_TOKEN_OPT',  'nitro_builder_api_token' );
 define( 'NB_NAMESPACE',  'nitro-builder/v1' );
 
-require_once NB_PLUGIN_DIR . 'includes/class-plugin.php';
-
-register_activation_hook( __FILE__, array( 'NB_Activator', 'activate' ) );
-register_deactivation_hook( __FILE__, array( 'NB_Activator', 'deactivate' ) );
-
-function nitro_builder(): NB_Plugin {
-	return NB_Plugin::get_instance();
+// Autoloading: Composer quando disponível, fallback manual caso contrário.
+if ( file_exists( NB_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
+	require_once NB_PLUGIN_DIR . 'vendor/autoload.php';
+} else {
+	require_once NB_PLUGIN_DIR . 'includes/autoload.php';
 }
 
-nitro_builder();
+register_activation_hook( __FILE__, [ 'NitroBuilder\Activator', 'activate' ] );
+register_deactivation_hook( __FILE__, [ 'NitroBuilder\Activator', 'deactivate' ] );
+
+function nitro_builder(): \NitroBuilder\Plugin {
+	return \NitroBuilder\Plugin::get_instance();
+}
+
+add_action( 'plugins_loaded', function () {
+	nitro_builder()->init();
+} );

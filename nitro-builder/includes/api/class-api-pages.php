@@ -1,9 +1,11 @@
 <?php
+namespace NitroBuilder\Api;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class NB_API {
+class Pages {
 
 	public static function init() {
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
@@ -12,12 +14,12 @@ class NB_API {
 	public static function register_routes() {
 		register_rest_route( NB_NAMESPACE, '/pages', array(
 			array(
-				'methods'             => WP_REST_Server::CREATABLE,
+				'methods'             => \WP_REST_Server::CREATABLE,
 				'callback'            => array( __CLASS__, 'handle_create' ),
 				'permission_callback' => array( __CLASS__, 'check_permission' ),
 			),
 			array(
-				'methods'             => WP_REST_Server::READABLE,
+				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( __CLASS__, 'handle_list' ),
 				'permission_callback' => array( __CLASS__, 'check_permission' ),
 			),
@@ -25,7 +27,7 @@ class NB_API {
 
 		register_rest_route( NB_NAMESPACE, '/pages/(?P<id>\d+)', array(
 			array(
-				'methods'             => WP_REST_Server::READABLE,
+				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( __CLASS__, 'handle_get' ),
 				'permission_callback' => array( __CLASS__, 'check_permission' ),
 			),
@@ -35,19 +37,19 @@ class NB_API {
 				'permission_callback' => array( __CLASS__, 'check_permission' ),
 			),
 			array(
-				'methods'             => WP_REST_Server::DELETABLE,
+				'methods'             => \WP_REST_Server::DELETABLE,
 				'callback'            => array( __CLASS__, 'handle_delete' ),
 				'permission_callback' => array( __CLASS__, 'check_permission' ),
 			),
 		) );
 	}
 
-	public static function check_permission( WP_REST_Request $request ) {
+	public static function check_permission( \WP_REST_Request $request ) {
 		$token  = $request->get_header( 'X-NB-Token' );
 		$stored = get_option( NB_TOKEN_OPT, '' );
 
 		if ( ! $token || ! $stored || ! hash_equals( (string) $stored, (string) $token ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'nb_forbidden',
 				__( 'Acesso não autorizado.', 'nitro-builder' ),
 				array( 'status' => 403 )
@@ -61,7 +63,7 @@ class NB_API {
 		$post = get_post( $id );
 
 		if ( ! $post || 'page' !== $post->post_type || ! get_post_meta( $id, NB_META_FLAG, true ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'nb_not_found',
 				__( 'Página não encontrada.', 'nitro-builder' ),
 				array( 'status' => 404 )
@@ -76,7 +78,7 @@ class NB_API {
 	 * Retorna array com ['slug', 'changed', 'original'] ou WP_Error.
 	 *
 	 * @param string $raw Slug bruto recebido da requisição.
-	 * @return array|WP_Error
+	 * @return array|\WP_Error
 	 */
 	private static function validate_slug( string $raw ) {
 		// 2. Sanitizar + detectar mudança.
@@ -85,7 +87,7 @@ class NB_API {
 
 		// 3. Comprimento mínimo.
 		if ( mb_strlen( $clean ) < 2 ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'nb_slug_too_short',
 				__( 'Slug deve ter pelo menos 2 caracteres.', 'nitro-builder' ),
 				array( 'status' => 400 )
@@ -94,7 +96,7 @@ class NB_API {
 
 		// 5. Comprimento máximo.
 		if ( mb_strlen( $clean ) > 100 ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'nb_slug_too_long',
 				__( 'Slug não pode exceder 100 caracteres.', 'nitro-builder' ),
 				array( 'status' => 400 )
@@ -103,7 +105,7 @@ class NB_API {
 
 		// 6. Slug puramente numérico.
 		if ( ctype_digit( $clean ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'nb_numeric_slug',
 				__( 'Slug não pode ser somente números.', 'nitro-builder' ),
 				array( 'status' => 400 )
@@ -117,7 +119,7 @@ class NB_API {
 			'page', 'embed', 'wp-json', 'wp-sitemap',
 		);
 		if ( in_array( $clean, $reserved, true ) ) {
-			return new WP_Error(
+			return new \WP_Error(
 				'nb_reserved_slug',
 				__( 'Este slug é reservado pelo WordPress.', 'nitro-builder' ),
 				array( 'status' => 400 )
@@ -131,7 +133,7 @@ class NB_API {
 		);
 	}
 
-	private static function format_response( WP_Post $post, bool $include_html = false ): array {
+	private static function format_response( \WP_Post $post, bool $include_html = false ): array {
 		$data = array(
 			'id'         => $post->ID,
 			'title'      => $post->post_title,
@@ -149,7 +151,7 @@ class NB_API {
 		return $data;
 	}
 
-	public static function handle_create( WP_REST_Request $request ) {
+	public static function handle_create( \WP_REST_Request $request ) {
 		$params = $request->get_json_params();
 
 		// 1. Sanitizar title.
@@ -157,15 +159,15 @@ class NB_API {
 		$html  = $params['html'] ?? '';
 
 		if ( ! $title ) {
-			return new WP_Error( 'nb_missing_title', __( 'O campo "title" é obrigatório.', 'nitro-builder' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'nb_missing_title', __( 'O campo "title" é obrigatório.', 'nitro-builder' ), array( 'status' => 400 ) );
 		}
 		if ( ! $html ) {
-			return new WP_Error( 'nb_missing_html', __( 'O campo "html" é obrigatório.', 'nitro-builder' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'nb_missing_html', __( 'O campo "html" é obrigatório.', 'nitro-builder' ), array( 'status' => 400 ) );
 		}
 
 		// 4. Limite de tamanho do title.
 		if ( mb_strlen( $title ) > 200 ) {
-			return new WP_Error( 'nb_title_too_long', __( 'Title não pode exceder 200 caracteres.', 'nitro-builder' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'nb_title_too_long', __( 'Title não pode exceder 200 caracteres.', 'nitro-builder' ), array( 'status' => 400 ) );
 		}
 
 		// 8. Validar status.
@@ -194,7 +196,7 @@ class NB_API {
 		$post_id = wp_insert_post( $args, true );
 
 		if ( is_wp_error( $post_id ) ) {
-			return new WP_Error( 'nb_insert_failed', $post_id->get_error_message(), array( 'status' => 500 ) );
+			return new \WP_Error( 'nb_insert_failed', $post_id->get_error_message(), array( 'status' => 500 ) );
 		}
 
 		update_post_meta( $post_id, NB_META_FLAG, '1' );
@@ -217,7 +219,7 @@ class NB_API {
 		return $response;
 	}
 
-	public static function handle_list( WP_REST_Request $request ) {
+	public static function handle_list( \WP_REST_Request $request ) {
 		$posts = get_posts( array(
 			'post_type'   => 'page',
 			'post_status' => array( 'publish', 'draft', 'private' ),
@@ -231,7 +233,7 @@ class NB_API {
 		return rest_ensure_response( array_map( array( __CLASS__, 'format_response' ), $posts ) );
 	}
 
-	public static function handle_get( WP_REST_Request $request ) {
+	public static function handle_get( \WP_REST_Request $request ) {
 		$post = self::get_owned_page( absint( $request['id'] ) );
 
 		if ( is_wp_error( $post ) ) {
@@ -241,7 +243,7 @@ class NB_API {
 		return rest_ensure_response( self::format_response( $post, true ) );
 	}
 
-	public static function handle_update( WP_REST_Request $request ) {
+	public static function handle_update( \WP_REST_Request $request ) {
 		$post = self::get_owned_page( absint( $request['id'] ) );
 
 		if ( is_wp_error( $post ) ) {
@@ -254,7 +256,7 @@ class NB_API {
 		if ( isset( $params['title'] ) ) {
 			$title = sanitize_text_field( $params['title'] );
 			if ( mb_strlen( $title ) > 200 ) {
-				return new WP_Error( 'nb_title_too_long', __( 'Title não pode exceder 200 caracteres.', 'nitro-builder' ), array( 'status' => 400 ) );
+				return new \WP_Error( 'nb_title_too_long', __( 'Title não pode exceder 200 caracteres.', 'nitro-builder' ), array( 'status' => 400 ) );
 			}
 			$args['post_title'] = $title;
 		}
@@ -272,7 +274,7 @@ class NB_API {
 		if ( count( $args ) > 1 ) {
 			$result = wp_update_post( $args, true );
 			if ( is_wp_error( $result ) ) {
-				return new WP_Error( 'nb_update_failed', $result->get_error_message(), array( 'status' => 500 ) );
+				return new \WP_Error( 'nb_update_failed', $result->get_error_message(), array( 'status' => 500 ) );
 			}
 		}
 
@@ -283,7 +285,7 @@ class NB_API {
 		return rest_ensure_response( self::format_response( get_post( $post->ID ) ) );
 	}
 
-	public static function handle_delete( WP_REST_Request $request ) {
+	public static function handle_delete( \WP_REST_Request $request ) {
 		$post = self::get_owned_page( absint( $request['id'] ) );
 
 		if ( is_wp_error( $post ) ) {
@@ -293,7 +295,7 @@ class NB_API {
 		$deleted = wp_delete_post( $post->ID, true );
 
 		if ( ! $deleted ) {
-			return new WP_Error( 'nb_delete_failed', __( 'Falha ao excluir a página.', 'nitro-builder' ), array( 'status' => 500 ) );
+			return new \WP_Error( 'nb_delete_failed', __( 'Falha ao excluir a página.', 'nitro-builder' ), array( 'status' => 500 ) );
 		}
 
 		return rest_ensure_response( array( 'deleted' => true, 'id' => $post->ID ) );
