@@ -1,6 +1,9 @@
 # MCP config (contains API keys)
 .mcp.json
 
+# Especificações técnicas — ficam só localmente, não vão pro repo
+technical-specification/
+
 # Build artifacts
 *.zip
 
