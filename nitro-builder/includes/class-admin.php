@@ -40,6 +40,9 @@ class Admin {
 
 		$token    = get_option( NB_TOKEN_OPT, '' );
 		$api_base = rest_url( NB_NAMESPACE . '/pages' );
+		$masked   = strlen( $token ) > 8
+			? substr( $token, 0, 4 ) . str_repeat( '•', 56 ) . substr( $token, -4 )
+			: str_repeat( '•', strlen( $token ) );
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Nitro Builder', 'nitro-builder' ); ?></h1>
@@ -57,7 +60,8 @@ class Admin {
 						<input
 							type="text"
 							id="nb-token-field"
-							value="<?php echo esc_attr( $token ); ?>"
+							value="<?php echo esc_attr( $masked ); ?>"
+							data-token="<?php echo esc_attr( $token ); ?>"
 							class="regular-text"
 							readonly
 							style="font-family:monospace;"
@@ -67,8 +71,12 @@ class Admin {
 							class="button"
 							onclick="
 								var f = document.getElementById('nb-token-field');
-								f.select();
-								document.execCommand('copy');
+								var token = f.getAttribute('data-token');
+								navigator.clipboard ? navigator.clipboard.writeText(token)
+									: (function(){ var t=document.createElement('textarea');
+										t.value=token; document.body.appendChild(t);
+										t.select(); document.execCommand('copy');
+										document.body.removeChild(t); })();
 								this.textContent = '<?php echo esc_js( __( 'Copiado!', 'nitro-builder' ) ); ?>';
 								setTimeout(function(){ this.textContent = '<?php echo esc_js( __( 'Copiar', 'nitro-builder' ) ); ?>'; }.bind(this), 2000);
 							"

@@ -9,6 +9,17 @@ class Pages {
 
 	public static function init() {
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
+		// Headers de segurança nas respostas do namespace do plugin.
+		add_filter( 'rest_post_dispatch', array( __CLASS__, 'add_security_headers' ), 10, 3 );
+	}
+
+	public static function add_security_headers( $response, $server, $request ) {
+		if ( strpos( $request->get_route(), '/' . NB_NAMESPACE ) === 0 ) {
+			$response->header( 'X-Content-Type-Options', 'nosniff' );
+			$response->header( 'X-Frame-Options', 'DENY' );
+			$response->header( 'Referrer-Policy', 'no-referrer' );
+		}
+		return $response;
 	}
 
 	public static function register_routes() {
@@ -62,6 +73,8 @@ class Pages {
 	private static function get_owned_page( int $id ) {
 		$post = get_post( $id );
 
+		// Resposta 404 genérica em todos os casos — não revelar
+		// se o post existe mas não pertence ao Nitro Builder.
 		if ( ! $post || 'page' !== $post->post_type || ! get_post_meta( $id, NB_META_FLAG, true ) ) {
 			return new \WP_Error(
 				'nb_not_found',
@@ -163,6 +176,9 @@ class Pages {
 		}
 		if ( ! $html ) {
 			return new \WP_Error( 'nb_missing_html', __( 'O campo "html" é obrigatório.', 'nitro-builder' ), array( 'status' => 400 ) );
+		}
+		if ( mb_strlen( $html, '8bit' ) > 2 * 1024 * 1024 ) {
+			return new \WP_Error( 'nb_html_too_large', __( 'O HTML não pode exceder 2MB.', 'nitro-builder' ), array( 'status' => 400 ) );
 		}
 
 		// 4. Limite de tamanho do title.
@@ -279,6 +295,9 @@ class Pages {
 		}
 
 		if ( isset( $params['html'] ) ) {
+			if ( mb_strlen( $params['html'], '8bit' ) > 2 * 1024 * 1024 ) {
+				return new \WP_Error( 'nb_html_too_large', __( 'O HTML não pode exceder 2MB.', 'nitro-builder' ), array( 'status' => 400 ) );
+			}
 			update_post_meta( $post->ID, NB_META_HTML, $params['html'] );
 		}
 
